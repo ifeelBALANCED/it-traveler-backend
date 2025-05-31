@@ -1,0 +1,60 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "prisma/migrations",
+    "**/__tests__/**"
+  ],
+  "env": {
+    "node": true,
+    "es2021": true
+  },
+  "plugins": ["typescript", "import", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "style": "warn"
+  },
+  "rules": {
+    "eqeqeq": "error",
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-console": ["warn"],
+    "oxc/approx-constant": "warn",
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          ["parent", "sibling", "index"]
+        ],
+        "alphabetize": { "order": "asc", "caseInsensitive": true },
+        "newlines-between": "always"
+      }
+    ],
+    "unicorn/no-null": "error",
+    "unicorn/prefer-node-protocol": "warn",
+    "unicorn/filename-case": ["error", { "case": "kebabCase" }],
+    "oxc/no-await-in-loop": "error",
+    "oxc/prefer-primitive-methods": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "plugins": ["typescript"],
+      "rules": {
+        "typescript/no-explicit-any": "error"
+      }
+    },
+    {
+      "files": ["src/__tests__/**/*.ts"],
+      "env": { "jest": true },
+      "plugins": ["jest"],
+      "rules": {
+        "jest/no-disabled-tests": "off"
+      }
+    }
+  ]
+}

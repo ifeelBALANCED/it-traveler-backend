@@ -1,0 +1,71 @@
+colors: true
+skip_output: [meta, success]
+
+#---------------------------------------------
+# Pre-commit checks
+#---------------------------------------------
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: '*.{js,jsx,ts,tsx,vue}'
+      run: |
+        echo "🔍 Linting code..."
+        bun run lint {staged_files}
+      skip: [merge, rebase]
+
+    format:
+      glob: '*.{js,jsx,ts,tsx,vue,json,md}'
+      stage_fixed: true
+      run: |
+        echo "✨ Formatting code..."
+        bun run format
+
+    typecheck:
+      glob: '*.{ts,tsx}'
+      run: |
+        echo "🔎 Type checking..."
+        bun run type-check
+      skip: [merge, rebase]
+
+    no-debug:
+      glob: '*.{js,jsx,ts,tsx,vue}'
+      run: |
+        echo "🐛 Checking for debug code..."
+        grep -L "console.log\\|debugger" {staged_files} || echo "⚠️ Debug code detected!"
+
+#---------------------------------------------
+# Commit message validation
+#---------------------------------------------
+commit-msg:
+  parallel: true
+  commands:
+    commitlint:
+      run: |
+        echo "📝 Validating commit message..."
+        bunx --no-install commitlint --edit "$1"
+
+#---------------------------------------------
+# Branch operations
+#---------------------------------------------
+post-merge:
+  commands:
+    update-deps:
+      run: |
+        echo "📦 Checking dependencies..."
+        # use ORIG_HEAD to refer to the previous HEAD without shell brace expansion
+        if git diff --name-only ORIG_HEAD HEAD | grep -E 'bun\.lock|package\.json'; then
+          echo "📦 Updating dependencies..."
+          bun install
+        fi
+
+post-checkout:
+  commands:
+    setup:
+      run: |
+        echo "🧹 Preparing workspace..."
+        # $3 = "1" when switching branches
+        if [ "$3" = "1" ] && git diff --name-only $1 $2 | grep -E 'bun\.lock|package\.json'; then
+          echo "📦 Updating dependencies for new branch..."
+          bun install
+        fi
