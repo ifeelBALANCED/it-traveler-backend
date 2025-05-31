@@ -1,268 +1,304 @@
-# Markers API
+# IT Traveler Backend - Markers API
 
-A fully functional REST API built with **ElysiaJS**, **Prisma**, and **SQLite** for managing location markers and users.
+A fully functional REST API for managing location markers, built with ElysiaJS, Prisma, SQLite, and Bun runtime.
 
-## 🚀 Features
+## Features
 
-- **Authentication & Authorization** with JWT tokens
-- **User Management** (registration, login, profile updates)
-- **Marker CRUD Operations** with location-based filtering
-- **Pagination & Search** functionality
-- **Input Validation** with comprehensive schemas
-- **Error Handling** with detailed responses
-- **API Documentation** with Swagger UI
-- **Database Relations** with Prisma ORM
-- **Session Management** with automatic cleanup
-- **CORS Configuration** for frontend integration
+- **User Authentication**: JWT-based authentication with session management
+- **Marker Management**: Create, read, update, and delete location markers
+- **User Management**: Profile updates, password changes, and account deletion
+- **Pagination**: Built-in pagination for list endpoints
+- **Validation**: Request validation using ElysiaJS's built-in schema validation
+- **Type Safety**: Full TypeScript support with Prisma-generated types
+- **Testing**: Comprehensive unit and E2E tests
 
-## 📋 Prerequisites
+## Tech Stack
 
-- [Bun](https://bun.sh/) runtime
-- Node.js 18+ (alternative to Bun)
+- **Runtime**: Bun
+- **Framework**: ElysiaJS
+- **Database**: SQLite with Prisma ORM
+- **Authentication**: JWT tokens with bcrypt password hashing
+- **Testing**: Bun test runner
 
-## 🛠️ Installation
+## Prerequisites
 
-1. **Clone and setup the project:**
+- [Bun](https://bun.sh/) installed on your system
+- Node.js 18+ (for some tooling compatibility)
+
+## Installation
+
+1. Clone the repository:
 
 ```bash
-mkdir markers-api && cd markers-api
-bun init -y
+git clone <repository-url>
+cd it-traveler-backend
 ```
 
-2. **Install dependencies:**
+2. Install dependencies:
 
 ```bash
-bun add elysia @elysiajs/cors @elysiajs/jwt @elysiajs/swagger @prisma/client prisma
-bun add -d @types/bun typescript
+bun install
 ```
 
-3. **Setup environment variables:**
+3. Set up the database:
 
 ```bash
-cp .env.example .env
-```
-
-Edit `.env` with your configuration.
-
-4. **Initialize and setup database:**
-
-```bash
-# Initialize Prisma
-bunx prisma init --datasource-provider sqlite
-
 # Generate Prisma client
-bunx prisma generate
+bun run db:generate
 
 # Run migrations
-bunx prisma migrate dev --name init
+bun run db:migrate
 
-# Seed the database (optional)
+# (Optional) Seed the database
 bun run db:seed
 ```
 
-5. **Start the development server:**
+4. Create a `.env` file:
+
+```env
+DATABASE_URL="file:./prisma/dev.db"
+JWT_SECRET="your-secret-key-here"
+NODE_ENV="development"
+```
+
+## Running the Application
+
+### Development mode:
 
 ```bash
 bun run dev
 ```
 
-## 📚 API Documentation
-
-Once the server is running, visit:
-
-- **Swagger UI**: http://localhost:3000/swagger
-- **Health Check**: http://localhost:3000/health
-
-## 🔐 Authentication
-
-The API uses JWT tokens for authentication. Include the token in the Authorization header:
-
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-### Sample Users (after seeding):
-
-- **Email**: john@example.com | **Password**: password123
-- **Email**: jane@example.com | **Password**: password123
-
-## 📖 API Endpoints
-
-### Authentication
-
-- `POST /api/v1/auth/register` - Register new user
-- `POST /api/v1/auth/login` - Login user
-- `POST /api/v1/auth/logout` - Logout user (requires auth)
-- `GET /api/v1/auth/me` - Get current user (requires auth)
-
-### Users
-
-- `GET /api/v1/users` - Get all users
-- `GET /api/v1/users/:id` - Get user by ID
-- `GET /api/v1/users/:id/markers` - Get user's markers
-- `PUT /api/v1/users/profile` - Update profile (requires auth)
-- `PUT /api/v1/users/password` - Change password (requires auth)
-- `DELETE /api/v1/users/account` - Delete account (requires auth)
-
-### Markers
-
-- `GET /api/v1/markers` - Get all markers (with pagination & filters)
-- `GET /api/v1/markers/:id` - Get marker by ID
-- `POST /api/v1/markers` - Create marker (requires auth)
-- `PUT /api/v1/markers/:id` - Update marker (requires auth)
-- `DELETE /api/v1/markers/:id` - Delete marker (requires auth)
-- `GET /api/v1/markers/my/markers` - Get current user's markers (requires auth)
-
-## 🔍 Query Parameters
-
-### Pagination
-
-- `page` - Page number (default: 1)
-- `limit` - Items per page (default: 10, max: 100)
-
-### Markers Filtering
-
-- `search` - Search in title, description, address
-- `lat` - Latitude for location-based search
-- `lng` - Longitude for location-based search
-- `radius` - Search radius in kilometers
-
-Example:
-
-```
-GET /api/v1/markers?page=1&limit=10&search=palace&lat=50.4501&lng=30.5234&radius=5
-```
-
-## 📁 Project Structure
-
-```
-src/
-├── lib/
-│   ├── auth.ts          # Authentication middleware & JWT config
-│   ├── cors.ts          # CORS configuration
-│   ├── database.ts      # Prisma client setup
-│   ├── errorHandler.ts  # Global error handling
-│   └── validation.ts    # Request validation schemas
-├── routes/
-│   ├── auth.ts          # Authentication routes
-│   ├── markers.ts       # Marker management routes
-│   └── users.ts         # User management routes
-└── index.ts             # Main server file
-
-prisma/
-├── schema.prisma        # Database schema
-└── seed.ts              # Database seeding script
-```
-
-## 🗄️ Database Schema
-
-### Users
-
-- `id` - Unique identifier (CUID)
-- `email` - Unique email address
-- `name` - User's display name
-- `password` - Hashed password
-- `avatar` - Profile picture URL (optional)
-- `createdAt` / `updatedAt` - Timestamps
-
-### Sessions
-
-- `id` - Unique identifier
-- `userId` - Reference to user
-- `token` - JWT token
-- `expiresAt` - Token expiration date
-
-### Markers
-
-- `id` - Unique identifier (CUID)
-- `title` - Marker title
-- `description` - Marker description (optional)
-- `latitude` / `longitude` - GPS coordinates
-- `address` - Human-readable address (optional)
-- `imageUrl` - Marker image URL (optional)
-- `userId` - Reference to creator
-- `createdAt` / `updatedAt` - Timestamps
-
-## 🔧 Available Scripts
-
-```bash
-# Development
-bun run dev              # Start development server with hot reload
-bun run build           # Build for production
-bun run start           # Start production server
-
-# Database
-bun run db:generate     # Generate Prisma client
-bun run db:migrate      # Run database migrations
-bun run db:studio       # Open Prisma Studio
-bun run db:seed         # Seed database with sample data
-bun run db:reset        # Reset database
-
-# Utilities
-bun run type-check      # Check TypeScript types
-```
-
-## 🔒 Security Features
-
-- **Password Hashing** with Bun's built-in bcrypt
-- **JWT Authentication** with configurable expiration
-- **Session Management** with automatic cleanup
-- **Input Validation** with comprehensive schemas
-- **CORS Protection** with configurable origins
-- **Rate Limiting** ready (can be added with middleware)
-
-## 🌐 Production Deployment
-
-1. **Set production environment variables:**
-
-```bash
-NODE_ENV=production
-JWT_SECRET=your-super-secure-secret
-DATABASE_URL=file:./production.db
-FRONTEND_URL=https://yourdomain.com
-```
-
-2. **Build and deploy:**
+### Production mode:
 
 ```bash
 bun run build
-bun run db:migrate:prod
 bun run start
 ```
 
-## 🤝 API Usage Examples
+The API will be available at `http://localhost:3000`
 
-### Register User
+## API Documentation
 
-```bash
-curl -X POST http://localhost:3000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Doe",
-    "email": "john@example.com",
-    "password": "password123",
-    "confirmPassword": "password123"
-  }'
+### Base URL
+
+```
+http://localhost:3000/api/v1
 ```
 
-### Create Marker
+### Authentication
 
-```bash
-curl -X POST http://localhost:3000/api/v1/markers \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{
-    "title": "My Location",
-    "description": "A great place to visit",
-    "latitude": 50.4501,
-    "longitude": 30.5234,
-    "address": "Kyiv, Ukraine"
-  }'
+Most endpoints require authentication. Include the JWT token in the Authorization header:
+
+```
+Authorization: Bearer <your-token>
 ```
 
-## 📄 License
+### Endpoints
 
-MIT License - feel free to use this project for your own applications!
+#### Health Check
+
+- `GET /` - API info
+- `GET /api/v1/health` - Health check endpoint
+
+#### Authentication (`/auth`)
+
+- `POST /auth/register` - Register a new user
+- `POST /auth/login` - Login with email and password
+- `POST /auth/logout` - Logout (requires auth)
+- `GET /auth/me` - Get current user info (requires auth)
+
+#### Markers (`/markers`)
+
+- `GET /markers` - Get all markers (public)
+- `GET /markers/:id` - Get a specific marker (public)
+- `POST /markers` - Create a new marker (requires auth)
+- `PUT /markers/:id` - Update a marker (requires auth, owner only)
+- `DELETE /markers/:id` - Delete a marker (requires auth, owner only)
+- `GET /markers/my/markers` - Get current user's markers (requires auth)
+
+#### Users (`/users`)
+
+- `GET /users` - Get all users with pagination
+- `GET /users/:id` - Get a specific user
+- `GET /users/:id/markers` - Get user's markers with pagination
+- `PUT /users/profile` - Update user profile (requires auth)
+- `PUT /users/password` - Change password (requires auth)
+- `DELETE /users/account` - Delete account (requires auth)
+
+### Request/Response Examples
+
+#### Register User
+
+```bash
+POST /api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "securepassword123",
+  "confirmPassword": "securepassword123"
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "clxxx...",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "avatar": null,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    },
+    "token": "eyJhbGc..."
+  }
+}
+```
+
+#### Create Marker
+
+```bash
+POST /api/v1/markers
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Favorite Coffee Shop",
+  "description": "Best coffee in town",
+  "latitude": 40.7589,
+  "longitude": -73.9851,
+  "address": "Times Square, NY",
+  "imageUrl": "https://example.com/image.jpg"
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "id": "clyyy...",
+    "title": "Favorite Coffee Shop",
+    "description": "Best coffee in town",
+    "latitude": 40.7589,
+    "longitude": -73.9851,
+    "address": "Times Square, NY",
+    "imageUrl": "https://example.com/image.jpg",
+    "userId": "clxxx...",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "user": {
+      "id": "clxxx...",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "avatar": null
+    }
+  }
+}
+```
+
+## Testing
+
+Run all tests:
+
+```bash
+bun test
+```
+
+Run specific test file:
+
+```bash
+bun test src/__tests__/unit/auth.test.ts
+```
+
+Run tests in watch mode:
+
+```bash
+bun test --watch
+```
+
+## Database Management
+
+```bash
+# Open Prisma Studio
+bun run db:studio
+
+# Reset database (WARNING: deletes all data)
+bun run db:reset
+
+# Generate Prisma client
+bun run db:generate
+
+# Create a new migration
+bun run db:migrate
+```
+
+## Project Structure
+
+```
+it-traveler-backend/
+├── prisma/
+│   ├── schema.prisma    # Database schema
+│   └── dev.db          # SQLite database file
+├── src/
+│   ├── __tests__/      # Test files
+│   │   ├── unit/       # Unit tests
+│   │   ├── e2e/        # End-to-end tests
+│   │   └── setup.ts    # Test setup
+│   ├── lib/            # Utilities and database connection
+│   ├── middleware/     # Express middleware
+│   ├── routes/         # API routes
+│   ├── services/       # Business logic
+│   ├── types/          # TypeScript types
+│   └── index.ts        # Application entry point
+├── .env                # Environment variables
+├── package.json        # Dependencies and scripts
+├── tsconfig.json       # TypeScript configuration
+└── README.md          # This file
+```
+
+## Error Handling
+
+The API returns consistent error responses:
+
+```json
+{
+  "success": false,
+  "error": "Error message here"
+}
+```
+
+Common HTTP status codes:
+
+- `200` - Success
+- `201` - Created
+- `400` - Bad Request
+- `401` - Unauthorized
+- `403` - Forbidden
+- `404` - Not Found
+- `422` - Validation Error
+- `500` - Internal Server Error
+
+## Development Tips
+
+1. **Type Safety**: Leverage Prisma's generated types for full type safety
+2. **Validation**: Use ElysiaJS's built-in schema validation for request validation
+3. **Error Handling**: Always wrap async operations in try-catch blocks
+4. **Testing**: Write tests for new features before implementing them
+5. **Security**: Never commit sensitive data like JWT secrets to version control
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
 
 ---
 

@@ -1,227 +1,236 @@
-import { Elysia } from "elysia";
-import { db } from "../lib/database";
-import { requireAuth } from "../lib/auth";
-import {
-  updateProfileSchema,
-  changePasswordSchema,
-  paginationSchema,
-  idParamSchema,
-} from "../lib/validation";
+import { Elysia, t } from "elysia";
+import { db } from "../lib/db";
+import { authMiddleware } from "../middleware/auth";
+import { AuthService } from "../services/auth.service";
+import * as bcrypt from "bcryptjs";
 
-const MAX_PAGE_SIZE = 100;
-const DEFAULT_PAGE_SIZE = 10;
+export const users = new Elysia({ prefix: "/users" })
+  .get(
+    "/",
+    async ({ query }) => {
+      const page = parseInt(query.page || "1");
+      const limit = parseInt(query.limit || "10");
+      const skip = (page - 1) * limit;
 
-interface UserContext {
-  user: { id: string; name: string; email: string; avatar: string };
-}
+      const [users, total] = await Promise.all([
+        db.user.findMany({
+          skip,
+          take: limit,
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+        db.user.count(),
+      ]);
 
-interface SetContext {
-  set: {
-    status: number;
-  };
-}
-
-export const users = (app: Elysia) => {
-  // Public endpoints
-  app.get("/users", async ({ query }) => {
-    const page = parseInt(query.page as string) || 1;
-    const limit = Math.min(
-      parseInt(query.limit as string) || DEFAULT_PAGE_SIZE,
-      MAX_PAGE_SIZE
-    );
-    const skip = (page - 1) * limit;
-
-    const [users, total] = await Promise.all([
-      db.user.findMany({
-        skip,
-        take: limit,
+      return {
+        success: true,
+        data: users,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    },
+    {
+      query: t.Object({
+        page: t.Optional(t.String({ pattern: "^[1-9]\\d*$" })),
+        limit: t.Optional(t.String({ pattern: "^(?:[1-9]|[1-9]\\d|100)$" })),
+      }),
+    }
+  )
+  .get(
+    "/:id",
+    async ({ params: { id }, set }) => {
+      const user = await db.user.findUnique({
+        where: { id },
         select: {
           id: true,
           name: true,
           email: true,
           avatar: true,
+          createdAt: true,
+          updatedAt: true,
         },
+      });
+
+      if (!user) {
+        set.status = 404;
+        throw new Error("User not found");
+      }
+
+      return {
+        success: true,
+        data: user,
+      };
+    },
+    {
+      params: t.Object({
+        id: t.String({ minLength: 1 }),
       }),
-      db.user.count(),
-    ]);
-
-    return {
-      users,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
-    };
-  });
-
-  app.get("/users/:id", async ({ params: { id }, set }) => {
-    const user = await db.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        avatar: true,
-      },
-    });
-
-    if (!user) {
-      set.status = 404;
-      return { error: "User not found" };
     }
+  )
+  .get(
+    "/:id/markers",
+    async ({ params: { id }, query, set }) => {
+      // Check if user exists
+      const userExists = await db.user.findUnique({
+        where: { id },
+        select: { id: true },
+      });
 
-    return user;
-  });
+      if (!userExists) {
+        set.status = 404;
+        throw new Error("User not found");
+      }
 
-  app.get("/users/:id/markers", async ({ params: { id }, query, set }) => {
-    const user = await db.user.findUnique({ where: { id } });
-    if (!user) {
-      set.status = 404;
-      return { error: "User not found" };
-    }
+      const page = parseInt(query.page || "1");
+      const limit = parseInt(query.limit || "10");
+      const skip = (page - 1) * limit;
 
-    const page = parseInt(query.page as string) || 1;
-    const limit = Math.min(
-      parseInt(query.limit as string) || DEFAULT_PAGE_SIZE,
-      MAX_PAGE_SIZE
-    );
-    const skip = (page - 1) * limit;
-
-    const [markers, total] = await Promise.all([
-      db.marker.findMany({
-        where: { userId: id },
-        skip,
-        take: limit,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              avatar: true,
+      const [markers, total] = await Promise.all([
+        db.marker.findMany({
+          where: { userId: id },
+          skip,
+          take: limit,
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                avatar: true,
+              },
             },
           },
-        },
-      }),
-      db.marker.count({ where: { userId: id } }),
-    ]);
+          orderBy: { createdAt: "desc" },
+        }),
+        db.marker.count({ where: { userId: id } }),
+      ]);
 
-    return {
-      markers: markers.map((marker) => ({
-        ...marker,
-        latitude: marker.latitude,
-        longitude: marker.longitude,
-      })),
-      pagination: {
+      return {
+        success: true,
+        data: markers,
+        total,
         page,
         limit,
-        total,
-        pages: Math.ceil(total / limit),
-      },
-    };
-  });
-
-  // Protected endpoints
-  app
-    .use(requireAuth)
-    .get("/users/me", async (ctx: UserContext) => {
-      const { user } = ctx;
-      if (!user) {
-        return { error: "Unauthorized" };
-      }
-      return user;
-    })
-    .put(
-      "/users/me",
-      async (ctx: UserContext & SetContext & { body: unknown }) => {
-        const { user, body, set } = ctx;
-        if (!user) {
-          set.status = 401;
-          return { error: "Unauthorized" };
-        }
-        try {
-          const updatedUser = await db.user.update({
-            where: { id: user.id },
-            data: {
-              name: (body as any).name,
-              avatar: (body as any).avatar,
-            },
+        totalPages: Math.ceil(total / limit),
+      };
+    },
+    {
+      params: t.Object({
+        id: t.String({ minLength: 1 }),
+      }),
+      query: t.Object({
+        page: t.Optional(t.String({ pattern: "^[1-9]\\d*$" })),
+        limit: t.Optional(t.String({ pattern: "^(?:[1-9]|[1-9]\\d|100)$" })),
+      }),
+    }
+  )
+  .group("", (app) =>
+    app
+      .use(authMiddleware)
+      .put(
+        "/profile",
+        async (context) => {
+          const { body, userId } = context;
+          const user = await db.user.update({
+            where: { id: userId },
+            data: body,
             select: {
               id: true,
               name: true,
               email: true,
               avatar: true,
+              createdAt: true,
+              updatedAt: true,
             },
           });
-          return updatedUser;
-        } catch (error) {
-          set.status = 500;
-          return { error: "Failed to update profile" };
-        }
-      },
-      {
-        body: updateProfileSchema,
-      }
-    )
-    .put(
-      "/users/me/password",
-      async (ctx: UserContext & SetContext & { body: unknown }) => {
-        const { user, body, set } = ctx;
-        if (!user) {
-          set.status = 401;
-          return { error: "Unauthorized" };
-        }
-        const dbUser = await db.user.findUnique({ where: { id: user.id } });
-        if (!dbUser) {
-          set.status = 404;
-          return { error: "User not found" };
-        }
-        const isValid = await Bun.password.verify(
-          (body as any).currentPassword,
-          dbUser.password
-        );
-        if (!isValid) {
-          set.status = 400;
-          return { error: "Current password is incorrect" };
-        }
-        if ((body as any).newPassword !== (body as any).confirmPassword) {
-          set.status = 400;
-          return { error: "New passwords do not match" };
-        }
-        try {
-          await db.user.update({
-            where: { id: user.id },
-            data: {
-              password: await Bun.password.hash((body as any).newPassword),
-            },
-          });
-          return { message: "Password updated successfully" };
-        } catch (error) {
-          set.status = 500;
-          return { error: "Failed to update password" };
-        }
-      },
-      {
-        body: changePasswordSchema,
-      }
-    )
-    .delete("/users/me", async (ctx: UserContext & SetContext) => {
-      const { user, set } = ctx;
-      if (!user) {
-        set.status = 401;
-        return { error: "Unauthorized" };
-      }
-      try {
-        await db.user.delete({ where: { id: user.id } });
-        set.status = 200;
-        return { message: "User deleted successfully" };
-      } catch (error) {
-        set.status = 500;
-        return { error: "Failed to delete user" };
-      }
-    });
 
-  return app;
-};
+          return {
+            success: true,
+            data: user,
+          };
+        },
+        {
+          body: t.Object({
+            name: t.Optional(t.String({ minLength: 2, maxLength: 50 })),
+            avatar: t.Optional(t.String({ format: "uri" })),
+          }),
+        }
+      )
+      .put(
+        "/password",
+        async (context) => {
+          const { body, userId, set } = context;
+          const user = await db.user.findUnique({
+            where: { id: userId },
+          });
+
+          if (!user) {
+            set.status = 404;
+            throw new Error("User not found");
+          }
+
+          // Verify current password
+          const isValidPassword = await bcrypt.compare(
+            body.currentPassword,
+            user.password
+          );
+          if (!isValidPassword) {
+            set.status = 400;
+            throw new Error("Current password is incorrect");
+          }
+
+          // Check if new passwords match
+          if (body.newPassword !== body.confirmPassword) {
+            set.status = 400;
+            throw new Error("New passwords do not match");
+          }
+
+          // Update password
+          const hashedPassword = await AuthService.hashPassword(
+            body.newPassword
+          );
+          await db.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword },
+          });
+
+          return {
+            success: true,
+            message: "Password updated successfully",
+          };
+        },
+        {
+          body: t.Object({
+            currentPassword: t.String({ minLength: 1 }),
+            newPassword: t.String({ minLength: 6, maxLength: 100 }),
+            confirmPassword: t.String({ minLength: 6, maxLength: 100 }),
+          }),
+        }
+      )
+      .delete("/account", async (context) => {
+        const { userId } = context;
+        // Delete all user's sessions first
+        await db.session.deleteMany({
+          where: { userId },
+        });
+
+        // Delete user and cascade delete markers
+        await db.user.delete({
+          where: { id: userId },
+        });
+
+        return {
+          success: true,
+          message: "Account deleted successfully",
+        };
+      })
+  );

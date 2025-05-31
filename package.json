@@ -16,7 +16,7 @@
     "type-check": "tsc --noEmit",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "test": "bun test",
+    "test": "bun test --preload ./src/__tests__/setup.ts",
     "prepare": "lefthook install"
   },
   "keywords": [
