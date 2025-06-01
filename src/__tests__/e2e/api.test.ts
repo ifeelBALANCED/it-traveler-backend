@@ -1,291 +1,283 @@
-import { describe, test, expect } from "bun:test";
-import { app } from "../../index";
-import { db } from "../../lib/db";
+import { describe, test, expect } from 'bun:test'
+import { app } from '../../index'
+import { db } from '../../lib/db'
 
-describe("E2E API Tests", () => {
-  test("complete user journey", async () => {
+describe('E2E API Tests', () => {
+  test('complete user journey', async () => {
     // 1. Register a new user
     const registerResponse = await app.handle(
-      new Request("http://localhost/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: "John Doe",
-          email: "john@example.com",
-          password: "securepassword123",
-          confirmPassword: "securepassword123",
+          name: 'John Doe',
+          email: 'john@example.com',
+          password: 'securepassword123',
+          confirmPassword: 'securepassword123',
         }),
-      })
-    );
+      }),
+    )
 
-    expect(registerResponse.status).toBe(201);
-    const { data: registerData } = await registerResponse.json();
-    const token = registerData.token;
-    const userId = registerData.user.id;
+    expect(registerResponse.status).toBe(201)
+    const { data: registerData } = await registerResponse.json()
+    const token = registerData.token
+    const userId = registerData.user.id
 
     // 2. Get current user info
     const meResponse = await app.handle(
-      new Request("http://localhost/api/auth/me", {
+      new Request('http://localhost/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
-      })
-    );
+      }),
+    )
 
-    expect(meResponse.status).toBe(200);
-    const { data: userData } = await meResponse.json();
-    expect(userData.email).toBe("john@example.com");
-    expect(userData.name).toBe("John Doe");
+    expect(meResponse.status).toBe(200)
+    const { data: userData } = await meResponse.json()
+    expect(userData.email).toBe('john@example.com')
+    expect(userData.name).toBe('John Doe')
 
     // 3. Create markers
     const marker1Response = await app.handle(
-      new Request("http://localhost/api/markers", {
-        method: "POST",
+      new Request('http://localhost/api/markers', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: "Favorite Coffee Shop",
-          description: "Best coffee in town",
+          title: 'Favorite Coffee Shop',
+          description: 'Best coffee in town',
           latitude: 40.7589,
           longitude: -73.9851,
-          address: "Times Square, NY",
-          imageUrl: "https://example.com/coffee.jpg",
+          address: 'Times Square, NY',
+          imageUrl: 'https://example.com/coffee.jpg',
         }),
-      })
-    );
+      }),
+    )
 
-    expect(marker1Response.status).toBe(201);
-    const { data: marker1 } = await marker1Response.json();
+    expect(marker1Response.status).toBe(201)
+    const { data: marker1 } = await marker1Response.json()
 
     const marker2Response = await app.handle(
-      new Request("http://localhost/api/markers", {
-        method: "POST",
+      new Request('http://localhost/api/markers', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: "Central Park",
-          description: "Nice place for a walk",
+          title: 'Central Park',
+          description: 'Nice place for a walk',
           latitude: 40.7829,
           longitude: -73.9654,
-          address: "Central Park, NY",
+          address: 'Central Park, NY',
         }),
-      })
-    );
+      }),
+    )
 
-    expect(marker2Response.status).toBe(201);
-    const { data: marker2 } = await marker2Response.json();
+    expect(marker2Response.status).toBe(201)
+    const { data: marker2 } = await marker2Response.json()
 
     // 4. Get all markers
-    const allMarkersResponse = await app.handle(
-      new Request("http://localhost/api/markers")
-    );
+    const allMarkersResponse = await app.handle(new Request('http://localhost/api/markers'))
 
-    expect(allMarkersResponse.status).toBe(200);
-    const { data: allMarkers } = await allMarkersResponse.json();
+    expect(allMarkersResponse.status).toBe(200)
+    const { data: allMarkers } = await allMarkersResponse.json()
     // Should have at least the 2 markers we created
-    expect(allMarkers.length).toBeGreaterThanOrEqual(2);
-    const ourMarkers = allMarkers.filter((m: any) => m.userId === userId);
-    expect(ourMarkers).toBeArrayOfSize(2);
+    expect(allMarkers.length).toBeGreaterThanOrEqual(2)
+    const ourMarkers = allMarkers.filter((m: any) => m.userId === userId)
+    expect(ourMarkers).toBeArrayOfSize(2)
 
     // 5. Get user's markers
     const myMarkersResponse = await app.handle(
-      new Request("http://localhost/api/markers/my/markers", {
+      new Request('http://localhost/api/markers/my/markers', {
         headers: { Authorization: `Bearer ${token}` },
-      })
-    );
+      }),
+    )
 
-    expect(myMarkersResponse.status).toBe(200);
-    const { data: myMarkers } = await myMarkersResponse.json();
-    expect(myMarkers).toBeArrayOfSize(2);
+    expect(myMarkersResponse.status).toBe(200)
+    const { data: myMarkers } = await myMarkersResponse.json()
+    expect(myMarkers).toBeArrayOfSize(2)
 
     // 6. Update a marker
     const updateResponse = await app.handle(
       new Request(`http://localhost/api/markers/${marker1.id}`, {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: "Amazing Coffee Shop",
-          description: "Updated: Still the best coffee in town!",
+          title: 'Amazing Coffee Shop',
+          description: 'Updated: Still the best coffee in town!',
         }),
-      })
-    );
+      }),
+    )
 
-    expect(updateResponse.status).toBe(200);
-    const { data: updatedMarker } = await updateResponse.json();
-    expect(updatedMarker.title).toBe("Amazing Coffee Shop");
+    expect(updateResponse.status).toBe(200)
+    const { data: updatedMarker } = await updateResponse.json()
+    expect(updatedMarker.title).toBe('Amazing Coffee Shop')
 
     // 7. Update user profile
     const profileUpdateResponse = await app.handle(
-      new Request("http://localhost/api/users/profile", {
-        method: "PUT",
+      new Request('http://localhost/api/users/profile', {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          name: "John Smith",
-          avatar: "https://example.com/john.jpg",
+          name: 'John Smith',
+          avatar: 'https://example.com/john.jpg',
         }),
-      })
-    );
+      }),
+    )
 
-    expect(profileUpdateResponse.status).toBe(200);
-    const { data: updatedProfile } = await profileUpdateResponse.json();
-    expect(updatedProfile.name).toBe("John Smith");
-    expect(updatedProfile.avatar).toBe("https://example.com/john.jpg");
+    expect(profileUpdateResponse.status).toBe(200)
+    const { data: updatedProfile } = await profileUpdateResponse.json()
+    expect(updatedProfile.name).toBe('John Smith')
+    expect(updatedProfile.avatar).toBe('https://example.com/john.jpg')
 
     // 8. Get all users
-    const usersResponse = await app.handle(
-      new Request("http://localhost/api/users")
-    );
+    const usersResponse = await app.handle(new Request('http://localhost/api/users'))
 
-    expect(usersResponse.status).toBe(200);
-    const { data: users, total } = await usersResponse.json();
-    expect(total).toBeGreaterThanOrEqual(1);
+    expect(usersResponse.status).toBe(200)
+    const { data: users, total } = await usersResponse.json()
+    expect(total).toBeGreaterThanOrEqual(1)
 
     // 9. Get user by ID
-    const userByIdResponse = await app.handle(
-      new Request(`http://localhost/api/users/${userId}`)
-    );
+    const userByIdResponse = await app.handle(new Request(`http://localhost/api/users/${userId}`))
 
-    expect(userByIdResponse.status).toBe(200);
-    const { data: userById } = await userByIdResponse.json();
-    expect(userById.id).toBe(userId);
-    expect(userById.name).toBe("John Smith");
+    expect(userByIdResponse.status).toBe(200)
+    const { data: userById } = await userByIdResponse.json()
+    expect(userById.id).toBe(userId)
+    expect(userById.name).toBe('John Smith')
 
     // 10. Get user's markers by user ID
     const userMarkersResponse = await app.handle(
-      new Request(`http://localhost/api/users/${userId}/markers`)
-    );
+      new Request(`http://localhost/api/users/${userId}/markers`),
+    )
 
-    expect(userMarkersResponse.status).toBe(200);
-    const { data: userMarkers } = await userMarkersResponse.json();
-    expect(userMarkers).toBeArrayOfSize(2);
+    expect(userMarkersResponse.status).toBe(200)
+    const { data: userMarkers } = await userMarkersResponse.json()
+    expect(userMarkers).toBeArrayOfSize(2)
 
     // 11. Delete a marker
     const deleteMarkerResponse = await app.handle(
       new Request(`http://localhost/api/markers/${marker2.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
-      })
-    );
+      }),
+    )
 
-    expect(deleteMarkerResponse.status).toBe(200);
+    expect(deleteMarkerResponse.status).toBe(200)
 
     // Verify marker is deleted
     const getDeletedMarkerResponse = await app.handle(
-      new Request(`http://localhost/api/markers/${marker2.id}`)
-    );
-    expect(getDeletedMarkerResponse.status).toBe(404);
+      new Request(`http://localhost/api/markers/${marker2.id}`),
+    )
+    expect(getDeletedMarkerResponse.status).toBe(404)
 
     // 12. Change password
     const changePasswordResponse = await app.handle(
-      new Request("http://localhost/api/users/password", {
-        method: "PUT",
+      new Request('http://localhost/api/users/password', {
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          currentPassword: "securepassword123",
-          newPassword: "newsecurepassword123",
-          confirmPassword: "newsecurepassword123",
+          currentPassword: 'securepassword123',
+          newPassword: 'newsecurepassword123',
+          confirmPassword: 'newsecurepassword123',
         }),
-      })
-    );
+      }),
+    )
 
-    expect(changePasswordResponse.status).toBe(200);
+    expect(changePasswordResponse.status).toBe(200)
 
     // 13. Logout
     const logoutResponse = await app.handle(
-      new Request("http://localhost/api/auth/logout", {
-        method: "POST",
+      new Request('http://localhost/api/auth/logout', {
+        method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
-      })
-    );
+      }),
+    )
 
-    expect(logoutResponse.status).toBe(200);
+    expect(logoutResponse.status).toBe(200)
 
     // Verify token is invalidated
     const invalidTokenResponse = await app.handle(
-      new Request("http://localhost/api/auth/me", {
+      new Request('http://localhost/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
-      })
-    );
-    expect(invalidTokenResponse.status).toBe(401);
+      }),
+    )
+    expect(invalidTokenResponse.status).toBe(401)
 
     // 14. Login with new password
     const loginResponse = await app.handle(
-      new Request("http://localhost/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: "john@example.com",
-          password: "newsecurepassword123",
+          email: 'john@example.com',
+          password: 'newsecurepassword123',
         }),
-      })
-    );
+      }),
+    )
 
-    expect(loginResponse.status).toBe(200);
-    const { data: loginData } = await loginResponse.json();
-    const newToken = loginData.token;
+    expect(loginResponse.status).toBe(200)
+    const { data: loginData } = await loginResponse.json()
+    const newToken = loginData.token
 
     // 15. Delete account
     const deleteAccountResponse = await app.handle(
-      new Request("http://localhost/api/users/account", {
-        method: "DELETE",
+      new Request('http://localhost/api/users/account', {
+        method: 'DELETE',
         headers: { Authorization: `Bearer ${newToken}` },
-      })
-    );
+      }),
+    )
 
-    expect(deleteAccountResponse.status).toBe(200);
+    expect(deleteAccountResponse.status).toBe(200)
 
     // Verify everything is deleted
-    const deletedUser = await db.user.findUnique({ where: { id: userId } });
-    expect(deletedUser).toBeNull();
+    const deletedUser = await db.user.findUnique({ where: { id: userId } })
+    expect(deletedUser).toBeNull()
 
-    const deletedMarkers = await db.marker.findMany({ where: { userId } });
-    expect(deletedMarkers).toBeArrayOfSize(0);
-  });
+    const deletedMarkers = await db.marker.findMany({ where: { userId } })
+    expect(deletedMarkers).toBeArrayOfSize(0)
+  })
 
-  test("concurrent user operations", async () => {
+  test('concurrent user operations', async () => {
     // Create multiple users concurrently
     const userPromises = Array.from({ length: 3 }, (_, i) =>
       app.handle(
-        new Request("http://localhost/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        new Request('http://localhost/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: `User ${i + 1}`,
             email: `user${i + 1}_${Date.now()}_${Math.random()}@example.com`,
-            password: "password123",
-            confirmPassword: "password123",
+            password: 'password123',
+            confirmPassword: 'password123',
           }),
-        })
-      )
-    );
+        }),
+      ),
+    )
 
-    const responses = await Promise.all(userPromises);
-    responses.forEach((response) => expect(response.status).toBe(201));
+    const responses = await Promise.all(userPromises)
+    responses.forEach((response) => expect(response.status).toBe(201))
 
     // Get all users data
-    const userData = await Promise.all(
-      responses.map((r) => r.json().then((d) => d.data))
-    );
+    const userData = await Promise.all(responses.map((r) => r.json().then((d) => d.data)))
 
     // Create markers for each user concurrently
     const markerPromises = userData.flatMap((user, userIndex) =>
       Array.from({ length: 2 }, (_, markerIndex) =>
         app.handle(
-          new Request("http://localhost/api/markers", {
-            method: "POST",
+          new Request('http://localhost/api/markers', {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
               Authorization: `Bearer ${user.token}`,
             },
             body: JSON.stringify({
@@ -293,131 +285,129 @@ describe("E2E API Tests", () => {
               latitude: 40.7128 + userIndex,
               longitude: -74.006 + markerIndex,
             }),
-          })
-        )
-      )
-    );
+          }),
+        ),
+      ),
+    )
 
-    const markerResponses = await Promise.all(markerPromises);
-    markerResponses.forEach((response) => expect(response.status).toBe(201));
+    const markerResponses = await Promise.all(markerPromises)
+    markerResponses.forEach((response) => expect(response.status).toBe(201))
 
     // Verify total markers
-    const allMarkersResponse = await app.handle(
-      new Request("http://localhost/api/markers")
-    );
-    const { data: allMarkers } = await allMarkersResponse.json();
+    const allMarkersResponse = await app.handle(new Request('http://localhost/api/markers'))
+    const { data: allMarkers } = await allMarkersResponse.json()
     // There may be more markers from other tests, so just check we have at least 6
-    expect(allMarkers.length).toBeGreaterThanOrEqual(6);
+    expect(allMarkers.length).toBeGreaterThanOrEqual(6)
     // Verify each user created their markers
     for (const { user } of userData) {
-      const userMarkers = allMarkers.filter((m: any) => m.userId === user.id);
-      expect(userMarkers).toBeArrayOfSize(2);
+      const userMarkers = allMarkers.filter((m: any) => m.userId === user.id)
+      expect(userMarkers).toBeArrayOfSize(2)
     }
 
     // Verify each user has their own markers
     const userMarkerChecks = userData.map((user) =>
       app.handle(
-        new Request("http://localhost/api/markers/my/markers", {
+        new Request('http://localhost/api/markers/my/markers', {
           headers: { Authorization: `Bearer ${user.token}` },
-        })
-      )
-    );
+        }),
+      ),
+    )
 
-    const userMarkerResponses = await Promise.all(userMarkerChecks);
+    const userMarkerResponses = await Promise.all(userMarkerChecks)
     for (const response of userMarkerResponses) {
-      expect(response.status).toBe(200);
-      const { data } = await response.json();
-      expect(data).toBeArrayOfSize(2);
+      expect(response.status).toBe(200)
+      const { data } = await response.json()
+      expect(data).toBeArrayOfSize(2)
     }
-  });
+  })
 
-  test("error handling and validation", async () => {
+  test('error handling and validation', async () => {
     // Test various error scenarios
 
     // 1. Invalid email format
     const invalidEmailResponse = await app.handle(
-      new Request("http://localhost/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: "Test User",
-          email: "invalid-email",
-          password: "password123",
-          confirmPassword: "password123",
+          name: 'Test User',
+          email: 'invalid-email',
+          password: 'password123',
+          confirmPassword: 'password123',
         }),
-      })
-    );
-    expect(invalidEmailResponse.status).toBe(422);
+      }),
+    )
+    expect(invalidEmailResponse.status).toBe(422)
 
     // 2. Short password
     const shortPasswordResponse = await app.handle(
-      new Request("http://localhost/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: "Test User",
-          email: "test@example.com",
-          password: "12345",
-          confirmPassword: "12345",
+          name: 'Test User',
+          email: 'test@example.com',
+          password: '12345',
+          confirmPassword: '12345',
         }),
-      })
-    );
-    expect(shortPasswordResponse.status).toBe(422);
+      }),
+    )
+    expect(shortPasswordResponse.status).toBe(422)
 
     // 3. Invalid coordinates
-    const { token } = await createTestUser();
+    const { token } = await createTestUser()
     const invalidCoordinatesResponse = await app.handle(
-      new Request("http://localhost/api/markers", {
-        method: "POST",
+      new Request('http://localhost/api/markers', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          title: "Invalid Marker",
+          title: 'Invalid Marker',
           latitude: 91, // Invalid
           longitude: -181, // Invalid
         }),
-      })
-    );
-    expect(invalidCoordinatesResponse.status).toBe(422);
+      }),
+    )
+    expect(invalidCoordinatesResponse.status).toBe(422)
 
     // 4. Unauthorized access
     const unauthorizedResponse = await app.handle(
-      new Request("http://localhost/api/markers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      new Request('http://localhost/api/markers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: "Unauthorized Marker",
+          title: 'Unauthorized Marker',
           latitude: 40.7128,
           longitude: -74.006,
         }),
-      })
-    );
-    expect(unauthorizedResponse.status).toBe(401);
+      }),
+    )
+    expect(unauthorizedResponse.status).toBe(401)
 
     // 5. Non-existent resource
     const notFoundResponse = await app.handle(
-      new Request("http://localhost/api/markers/non-existent-id")
-    );
-    expect(notFoundResponse.status).toBe(404);
-  });
-});
+      new Request('http://localhost/api/markers/non-existent-id'),
+    )
+    expect(notFoundResponse.status).toBe(404)
+  })
+})
 
 // Helper function to create a test user
 async function createTestUser() {
   const response = await app.handle(
-    new Request("http://localhost/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    new Request('http://localhost/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: "Test User",
+        name: 'Test User',
         email: `test${Date.now()}@example.com`,
-        password: "password123",
-        confirmPassword: "password123",
+        password: 'password123',
+        confirmPassword: 'password123',
       }),
-    })
-  );
-  const data = await response.json();
-  return data.data;
+    }),
+  )
+  const data = await response.json()
+  return data.data
 }

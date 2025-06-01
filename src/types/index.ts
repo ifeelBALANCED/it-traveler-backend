@@ -1,15 +1,15 @@
-import { t } from "elysia";
-import { User } from "@prisma/client";
+import { t } from 'elysia'
+import { User } from '@prisma/client'
 
 // Base response types
 export const BaseResponse = t.Object({
   success: t.Boolean(),
-});
+})
 
 export const ErrorResponse = t.Object({
   success: t.Boolean(),
   message: t.String(),
-});
+})
 
 // User types
 export const UserResponse = t.Object({
@@ -19,7 +19,7 @@ export const UserResponse = t.Object({
   avatar: t.Union([t.String(), t.Null()]),
   createdAt: t.Date(),
   updatedAt: t.Date(),
-});
+})
 
 export const UserWithTokenResponse = t.Object({
   success: t.Boolean(),
@@ -27,12 +27,12 @@ export const UserWithTokenResponse = t.Object({
     user: UserResponse,
     token: t.String(),
   }),
-});
+})
 
 export const UserDataResponse = t.Object({
   success: t.Boolean(),
   data: UserResponse,
-});
+})
 
 export const UsersListResponse = t.Object({
   success: t.Boolean(),
@@ -41,7 +41,7 @@ export const UsersListResponse = t.Object({
   page: t.Number(),
   limit: t.Number(),
   totalPages: t.Number(),
-});
+})
 
 // Marker types
 export const MarkerResponse = t.Object({
@@ -61,17 +61,17 @@ export const MarkerResponse = t.Object({
     email: t.String(),
     avatar: t.Union([t.String(), t.Null()]),
   }),
-});
+})
 
 export const MarkerDataResponse = t.Object({
   success: t.Boolean(),
   data: MarkerResponse,
-});
+})
 
 export const MarkersListResponse = t.Object({
   success: t.Boolean(),
   data: t.Array(MarkerResponse),
-});
+})
 
 export const MarkersWithPaginationResponse = t.Object({
   success: t.Boolean(),
@@ -80,7 +80,7 @@ export const MarkersWithPaginationResponse = t.Object({
   page: t.Number(),
   limit: t.Number(),
   totalPages: t.Number(),
-});
+})
 
 // Auth response types
 export const LoginResponse = t.Object({
@@ -89,69 +89,69 @@ export const LoginResponse = t.Object({
     user: UserResponse,
     token: t.String(),
   }),
-});
+})
 
 export const MessageResponse = t.Object({
   success: t.Boolean(),
   message: t.String(),
-});
+})
 
-export type UserWithoutPassword = Omit<User, "password">;
+export type UserWithoutPassword = Omit<User, 'password'>
 
 export interface LoginRequest {
-  email: string;
-  password: string;
+  email: string
+  password: string
 }
 
 export interface RegisterRequest {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
+  name: string
+  email: string
+  password: string
+  confirmPassword: string
 }
 
 export interface CreateMarkerRequest {
-  title: string;
-  description?: string;
-  latitude: number;
-  longitude: number;
-  address?: string;
-  imageUrl?: string;
+  title: string
+  description?: string
+  latitude: number
+  longitude: number
+  address?: string
+  imageUrl?: string
 }
 
 export interface UpdateMarkerRequest {
-  title?: string;
-  description?: string;
-  latitude?: number;
-  longitude?: number;
-  address?: string;
-  imageUrl?: string;
+  title?: string
+  description?: string
+  latitude?: number
+  longitude?: number
+  address?: string
+  imageUrl?: string
 }
 
 export interface UpdateProfileRequest {
-  name?: string;
-  avatar?: string;
+  name?: string
+  avatar?: string
 }
 
 export interface UpdatePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
 }
 
 export interface PaginationQuery {
-  page?: string;
-  limit?: string;
+  page?: string
+  limit?: string
 }
 
 export interface AuthContext {
-  userId: string;
+  userId: string
 }
 
 export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  data: T[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
 }

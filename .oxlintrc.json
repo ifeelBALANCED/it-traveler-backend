@@ -40,7 +40,7 @@
         "newlines-between": "always"
       }
     ],
-    "unicorn/no-null": "error",
+    "unicorn/no-null": "off",
     "unicorn/prefer-node-protocol": "warn",
     "unicorn/filename-case": ["error", { "case": "kebabCase" }],
     "oxc/no-await-in-loop": "error",

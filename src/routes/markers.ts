@@ -1,16 +1,11 @@
-import { Elysia, t } from "elysia";
-import { db } from "../lib/db";
-import { authMiddleware } from "../middleware/auth";
-import {
-  MarkersListResponse,
-  MarkerDataResponse,
-  MessageResponse,
-  ErrorResponse,
-} from "../types";
+import { Elysia, t } from 'elysia'
+import { db } from '../lib/db'
+import { authMiddleware } from '../middleware/auth'
+import { MarkersListResponse, MarkerDataResponse, MessageResponse, ErrorResponse } from '../types'
 
-export const markers = new Elysia({ prefix: "/markers" })
+export const markers = new Elysia({ prefix: '/markers' })
   .get(
-    "/",
+    '/',
     async () => {
       const markers = await db.marker.findMany({
         include: {
@@ -23,22 +18,22 @@ export const markers = new Elysia({ prefix: "/markers" })
             },
           },
         },
-        orderBy: { createdAt: "desc" },
-      });
+        orderBy: { createdAt: 'desc' },
+      })
 
       return {
         success: true,
         data: markers,
-      };
+      }
     },
     {
       response: {
         200: MarkersListResponse,
       },
-    }
+    },
   )
   .get(
-    "/:id",
+    '/:id',
     async ({ params: { id }, set }) => {
       const marker = await db.marker.findUnique({
         where: { id },
@@ -52,17 +47,17 @@ export const markers = new Elysia({ prefix: "/markers" })
             },
           },
         },
-      });
+      })
 
       if (!marker) {
-        set.status = 404;
-        throw new Error("Marker not found");
+        set.status = 404
+        throw new Error('Marker not found')
       }
 
       return {
         success: true,
         data: marker,
-      };
+      }
     },
     {
       params: t.Object({
@@ -72,15 +67,15 @@ export const markers = new Elysia({ prefix: "/markers" })
         200: MarkerDataResponse,
         404: ErrorResponse,
       },
-    }
+    },
   )
-  .group("", (app) =>
+  .group('', (app) =>
     app
       .use(authMiddleware)
       .post(
-        "/",
+        '/',
         async (context) => {
-          const { body, userId, set } = context;
+          const { body, userId, set } = context
           const marker = await db.marker.create({
             data: {
               ...body,
@@ -96,13 +91,13 @@ export const markers = new Elysia({ prefix: "/markers" })
                 },
               },
             },
-          });
+          })
 
-          set.status = 201;
+          set.status = 201
           return {
             success: true,
             data: marker,
-          };
+          }
         },
         {
           body: t.Object({
@@ -111,18 +106,18 @@ export const markers = new Elysia({ prefix: "/markers" })
             latitude: t.Number({ minimum: -90, maximum: 90 }),
             longitude: t.Number({ minimum: -180, maximum: 180 }),
             address: t.Optional(t.String({ maxLength: 500 })),
-            imageUrl: t.Optional(t.String({ format: "uri" })),
+            imageUrl: t.Optional(t.String({ format: 'uri' })),
           }),
           response: {
             201: MarkerDataResponse,
             400: ErrorResponse,
           },
-        }
+        },
       )
       .get(
-        "/my/markers",
+        '/my/markers',
         async (context) => {
-          const { userId } = context;
+          const { userId } = context
           const markers = await db.marker.findMany({
             where: { userId },
             include: {
@@ -135,42 +130,42 @@ export const markers = new Elysia({ prefix: "/markers" })
                 },
               },
             },
-            orderBy: { createdAt: "desc" },
-          });
+            orderBy: { createdAt: 'desc' },
+          })
 
           return {
             success: true,
             data: markers,
-          };
+          }
         },
         {
           response: {
             200: MarkersListResponse,
           },
-        }
+        },
       )
       .put(
-        "/:id",
+        '/:id',
         async (context) => {
           const {
             params: { id },
             body,
             userId,
             set,
-          } = context;
+          } = context
 
           const existingMarker = await db.marker.findUnique({
             where: { id },
-          });
+          })
 
           if (!existingMarker) {
-            set.status = 404;
-            throw new Error("Marker not found");
+            set.status = 404
+            throw new Error('Marker not found')
           }
 
           if (existingMarker.userId !== userId) {
-            set.status = 403;
-            throw new Error("You don't have permission to update this marker");
+            set.status = 403
+            throw new Error("You don't have permission to update this marker")
           }
 
           const marker = await db.marker.update({
@@ -186,12 +181,12 @@ export const markers = new Elysia({ prefix: "/markers" })
                 },
               },
             },
-          });
+          })
 
           return {
             success: true,
             data: marker,
-          };
+          }
         },
         {
           params: t.Object({
@@ -203,46 +198,46 @@ export const markers = new Elysia({ prefix: "/markers" })
             latitude: t.Optional(t.Number({ minimum: -90, maximum: 90 })),
             longitude: t.Optional(t.Number({ minimum: -180, maximum: 180 })),
             address: t.Optional(t.String({ maxLength: 500 })),
-            imageUrl: t.Optional(t.String({ format: "uri" })),
+            imageUrl: t.Optional(t.String({ format: 'uri' })),
           }),
           response: {
             200: MarkerDataResponse,
             404: ErrorResponse,
             403: ErrorResponse,
           },
-        }
+        },
       )
       .delete(
-        "/:id",
+        '/:id',
         async (context) => {
           const {
             params: { id },
             userId,
             set,
-          } = context;
+          } = context
 
           const existingMarker = await db.marker.findUnique({
             where: { id },
-          });
+          })
 
           if (!existingMarker) {
-            set.status = 404;
-            throw new Error("Marker not found");
+            set.status = 404
+            throw new Error('Marker not found')
           }
 
           if (existingMarker.userId !== userId) {
-            set.status = 403;
-            throw new Error("You don't have permission to delete this marker");
+            set.status = 403
+            throw new Error("You don't have permission to delete this marker")
           }
 
           await db.marker.delete({
             where: { id },
-          });
+          })
 
           return {
             success: true,
-            message: "Marker deleted successfully",
-          };
+            message: 'Marker deleted successfully',
+          }
         },
         {
           params: t.Object({
@@ -253,6 +248,6 @@ export const markers = new Elysia({ prefix: "/markers" })
             404: ErrorResponse,
             403: ErrorResponse,
           },
-        }
-      )
-  );
+        },
+      ),
+  )

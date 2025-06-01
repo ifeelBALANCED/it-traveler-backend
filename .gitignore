@@ -60,6 +60,24 @@ yarn-error.log*
 /src/generated/
 **/generated/
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+dev.db
+database.db
+test.db
+
+# Database journals and temp files
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Prisma
+.env
+prisma/dev.db
+prisma/*.db
+
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -75,3 +93,32 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Bun specific
+.bun
+node_modules.bun
+
+# Testing
+/cypress/videos/
+/cypress/screenshots/
+/playwright-report/
+/test-results/
+
+# Storybook
+storybook-static/
