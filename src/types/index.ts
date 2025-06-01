@@ -1,5 +1,4 @@
-import { t } from 'elysia'
-import { User } from '@prisma/client'
+import { Static, t } from 'elysia'
 
 // Base response types
 export const BaseResponse = t.Object({
@@ -96,7 +95,7 @@ export const MessageResponse = t.Object({
   message: t.String(),
 })
 
-export type UserWithoutPassword = Omit<User, 'password'>
+export type UserWithoutPassword = Omit<Static<typeof UserResponse>, 'password'>
 
 export interface LoginRequest {
   email: string
