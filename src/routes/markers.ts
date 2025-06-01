@@ -1,28 +1,42 @@
 import { Elysia, t } from "elysia";
 import { db } from "../lib/db";
 import { authMiddleware } from "../middleware/auth";
+import {
+  MarkersListResponse,
+  MarkerDataResponse,
+  MessageResponse,
+  ErrorResponse,
+} from "../types";
 
 export const markers = new Elysia({ prefix: "/markers" })
-  .get("/", async () => {
-    const markers = await db.marker.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
+  .get(
+    "/",
+    async () => {
+      const markers = await db.marker.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatar: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+      });
 
-    return {
-      success: true,
-      data: markers,
-    };
-  })
+      return {
+        success: true,
+        data: markers,
+      };
+    },
+    {
+      response: {
+        200: MarkersListResponse,
+      },
+    }
+  )
   .get(
     "/:id",
     async ({ params: { id }, set }) => {
@@ -54,6 +68,10 @@ export const markers = new Elysia({ prefix: "/markers" })
       params: t.Object({
         id: t.String({ minLength: 1 }),
       }),
+      response: {
+        200: MarkerDataResponse,
+        404: ErrorResponse,
+      },
     }
   )
   .group("", (app) =>
@@ -95,30 +113,42 @@ export const markers = new Elysia({ prefix: "/markers" })
             address: t.Optional(t.String({ maxLength: 500 })),
             imageUrl: t.Optional(t.String({ format: "uri" })),
           }),
+          response: {
+            201: MarkerDataResponse,
+            400: ErrorResponse,
+          },
         }
       )
-      .get("/my/markers", async (context) => {
-        const { userId } = context;
-        const markers = await db.marker.findMany({
-          where: { userId },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                avatar: true,
+      .get(
+        "/my/markers",
+        async (context) => {
+          const { userId } = context;
+          const markers = await db.marker.findMany({
+            where: { userId },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  avatar: true,
+                },
               },
             },
-          },
-          orderBy: { createdAt: "desc" },
-        });
+            orderBy: { createdAt: "desc" },
+          });
 
-        return {
-          success: true,
-          data: markers,
-        };
-      })
+          return {
+            success: true,
+            data: markers,
+          };
+        },
+        {
+          response: {
+            200: MarkersListResponse,
+          },
+        }
+      )
       .put(
         "/:id",
         async (context) => {
@@ -128,7 +158,7 @@ export const markers = new Elysia({ prefix: "/markers" })
             userId,
             set,
           } = context;
-          // Check if marker exists and belongs to user
+
           const existingMarker = await db.marker.findUnique({
             where: { id },
           });
@@ -175,6 +205,11 @@ export const markers = new Elysia({ prefix: "/markers" })
             address: t.Optional(t.String({ maxLength: 500 })),
             imageUrl: t.Optional(t.String({ format: "uri" })),
           }),
+          response: {
+            200: MarkerDataResponse,
+            404: ErrorResponse,
+            403: ErrorResponse,
+          },
         }
       )
       .delete(
@@ -185,7 +220,7 @@ export const markers = new Elysia({ prefix: "/markers" })
             userId,
             set,
           } = context;
-          // Check if marker exists and belongs to user
+
           const existingMarker = await db.marker.findUnique({
             where: { id },
           });
@@ -213,6 +248,11 @@ export const markers = new Elysia({ prefix: "/markers" })
           params: t.Object({
             id: t.String({ minLength: 1 }),
           }),
+          response: {
+            200: MessageResponse,
+            404: ErrorResponse,
+            403: ErrorResponse,
+          },
         }
       )
   );

@@ -3,6 +3,13 @@ import { db } from "../lib/db";
 import { authMiddleware } from "../middleware/auth";
 import { AuthService } from "../services/auth.service";
 import * as bcrypt from "bcryptjs";
+import {
+  UsersListResponse,
+  UserDataResponse,
+  MarkersWithPaginationResponse,
+  MessageResponse,
+  ErrorResponse,
+} from "../types";
 
 export const users = new Elysia({ prefix: "/users" })
   .get(
@@ -43,6 +50,9 @@ export const users = new Elysia({ prefix: "/users" })
         page: t.Optional(t.String({ pattern: "^[1-9]\\d*$" })),
         limit: t.Optional(t.String({ pattern: "^(?:[1-9]|[1-9]\\d|100)$" })),
       }),
+      response: {
+        200: UsersListResponse,
+      },
     }
   )
   .get(
@@ -74,12 +84,15 @@ export const users = new Elysia({ prefix: "/users" })
       params: t.Object({
         id: t.String({ minLength: 1 }),
       }),
+      response: {
+        200: UserDataResponse,
+        404: ErrorResponse,
+      },
     }
   )
   .get(
     "/:id/markers",
     async ({ params: { id }, query, set }) => {
-      // Check if user exists
       const userExists = await db.user.findUnique({
         where: { id },
         select: { id: true },
@@ -131,6 +144,10 @@ export const users = new Elysia({ prefix: "/users" })
         page: t.Optional(t.String({ pattern: "^[1-9]\\d*$" })),
         limit: t.Optional(t.String({ pattern: "^(?:[1-9]|[1-9]\\d|100)$" })),
       }),
+      response: {
+        200: MarkersWithPaginationResponse,
+        404: ErrorResponse,
+      },
     }
   )
   .group("", (app) =>
@@ -163,6 +180,10 @@ export const users = new Elysia({ prefix: "/users" })
             name: t.Optional(t.String({ minLength: 2, maxLength: 50 })),
             avatar: t.Optional(t.String({ format: "uri" })),
           }),
+          response: {
+            200: UserDataResponse,
+            404: ErrorResponse,
+          },
         }
       )
       .put(
@@ -178,7 +199,6 @@ export const users = new Elysia({ prefix: "/users" })
             throw new Error("User not found");
           }
 
-          // Verify current password
           const isValidPassword = await bcrypt.compare(
             body.currentPassword,
             user.password
@@ -188,13 +208,11 @@ export const users = new Elysia({ prefix: "/users" })
             throw new Error("Current password is incorrect");
           }
 
-          // Check if new passwords match
           if (body.newPassword !== body.confirmPassword) {
             set.status = 400;
             throw new Error("New passwords do not match");
           }
 
-          // Update password
           const hashedPassword = await AuthService.hashPassword(
             body.newPassword
           );
@@ -214,23 +232,35 @@ export const users = new Elysia({ prefix: "/users" })
             newPassword: t.String({ minLength: 6, maxLength: 100 }),
             confirmPassword: t.String({ minLength: 6, maxLength: 100 }),
           }),
+          response: {
+            200: MessageResponse,
+            400: ErrorResponse,
+            404: ErrorResponse,
+          },
         }
       )
-      .delete("/account", async (context) => {
-        const { userId } = context;
-        // Delete all user's sessions first
-        await db.session.deleteMany({
-          where: { userId },
-        });
+      .delete(
+        "/account",
+        async (context) => {
+          const { userId } = context;
 
-        // Delete user and cascade delete markers
-        await db.user.delete({
-          where: { id: userId },
-        });
+          await db.session.deleteMany({
+            where: { userId },
+          });
 
-        return {
-          success: true,
-          message: "Account deleted successfully",
-        };
-      })
+          await db.user.delete({
+            where: { id: userId },
+          });
+
+          return {
+            success: true,
+            message: "Account deleted successfully",
+          };
+        },
+        {
+          response: {
+            200: MessageResponse,
+          },
+        }
+      )
   );

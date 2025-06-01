@@ -1,7 +1,11 @@
 import { db } from "../lib/db";
 import jwt from "jsonwebtoken";
 import * as bcrypt from "bcryptjs";
-import { RegisterRequest, LoginRequest, UserWithoutPassword } from "../types";
+import type {
+  RegisterRequest,
+  LoginRequest,
+  UserWithoutPassword,
+} from "../types";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const JWT_EXPIRES_IN = "7d";

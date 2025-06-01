@@ -1,6 +1,7 @@
 {
   "name": "markers-api",
   "version": "1.0.0",
+  "type": "module",
   "description": "Location markers API with ElysiaJS, Prisma, and SQLite",
   "main": "src/index.ts",
   "scripts": {

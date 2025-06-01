@@ -1,14 +1,20 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+
   "ignorePatterns": [
-    "**/node_modules/**",
-    "**/dist/**",
-    "prisma/migrations",
-    "**/__tests__/**"
+    "node_modules/**",
+    "dist/**",
+    "prisma/migrations/**",
+    "**/__tests__/**",
+    "build/**",
+    "coverage/**",
+    ".next/**",
+    "out/**"
   ],
   "env": {
     "node": true,
-    "es2021": true
+    "es2021": true,
+    "browser": true
   },
   "plugins": ["typescript", "import", "unicorn", "oxc"],
   "categories": {
@@ -45,15 +51,24 @@
       "files": ["**/*.ts", "**/*.tsx"],
       "plugins": ["typescript"],
       "rules": {
-        "typescript/no-explicit-any": "error"
+        "typescript/no-explicit-any": "error",
+        "typescript/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
       }
     },
     {
-      "files": ["src/__tests__/**/*.ts"],
+      "files": ["src/__tests__/**/*.ts", "**/*.test.ts", "**/*.spec.ts"],
       "env": { "jest": true },
       "plugins": ["jest"],
       "rules": {
-        "jest/no-disabled-tests": "off"
+        "jest/no-disabled-tests": "off",
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["*.config.js", "*.config.ts", "*.config.mjs"],
+      "rules": {
+        "unicorn/filename-case": "off",
+        "import/no-default-export": "off"
       }
     }
   ]
