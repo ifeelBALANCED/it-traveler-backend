@@ -8,15 +8,7 @@ import { auth } from "./routes/auth";
 const app = new Elysia()
   .use(cors())
   .use(swagger())
-  .get("/", () => ({
-    name: "Markers API",
-    version: "1.0.0",
-  }))
-  .get("/api/v1/health", () => ({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  }))
-  .group("/api/v1", (app) => app.use(auth).use(users).use(markers));
+  .group("/api", (app) => app.use(auth).use(users).use(markers));
 
 // Auto-start server if script is run directly
 if (import.meta.main) {

@@ -6,7 +6,7 @@ describe("Auth Endpoints", () => {
     test("should register a new user successfully", async () => {
       const email = `test_${Date.now()}_${Math.random()}@example.com`;
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -29,7 +29,7 @@ describe("Auth Endpoints", () => {
 
     test("should fail with mismatched passwords", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -48,7 +48,7 @@ describe("Auth Endpoints", () => {
       const email = `test_${Date.now()}_${Math.random()}@example.com`;
       // First registration
       await app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -62,7 +62,7 @@ describe("Auth Endpoints", () => {
 
       // Second registration with same email
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -79,7 +79,7 @@ describe("Auth Endpoints", () => {
 
     test("should fail with invalid email format", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -96,7 +96,7 @@ describe("Auth Endpoints", () => {
 
     test("should fail with short password", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -117,7 +117,7 @@ describe("Auth Endpoints", () => {
       const email = `test_${Date.now()}_${Math.random()}@example.com`;
       // Register a user first
       await app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -131,7 +131,7 @@ describe("Auth Endpoints", () => {
 
       // Login
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/login", {
+        new Request("http://localhost/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -159,7 +159,7 @@ describe("Auth Endpoints", () => {
       const email = `test_${Date.now()}_${Math.random()}@example.com`;
       // Register a user first
       await app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -173,7 +173,7 @@ describe("Auth Endpoints", () => {
 
       // Login with wrong password
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/login", {
+        new Request("http://localhost/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -188,7 +188,7 @@ describe("Auth Endpoints", () => {
 
     test("should fail with non-existent email", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/login", {
+        new Request("http://localhost/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -207,7 +207,7 @@ describe("Auth Endpoints", () => {
       const email = `test_${Date.now()}_${Math.random()}@example.com`;
       // Register and get token
       const registerResponse = await app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -224,7 +224,7 @@ describe("Auth Endpoints", () => {
 
       // Get current user
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/me", {
+        new Request("http://localhost/api/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         })
       );
@@ -238,7 +238,7 @@ describe("Auth Endpoints", () => {
 
     test("should fail without authentication", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/me")
+        new Request("http://localhost/api/auth/me")
       );
 
       // Add debug logging
@@ -253,7 +253,7 @@ describe("Auth Endpoints", () => {
 
     test("should fail with invalid token", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/me", {
+        new Request("http://localhost/api/auth/me", {
           headers: { Authorization: "Bearer invalid-token" },
         })
       );
@@ -267,7 +267,7 @@ describe("Auth Endpoints", () => {
       const email = `test_${Date.now()}_${Math.random()}@example.com`;
       // Register and get token
       const registerResponse = await app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -284,7 +284,7 @@ describe("Auth Endpoints", () => {
 
       // Logout
       const response = await app.handle(
-        new Request("http://localhost/api/v1/auth/logout", {
+        new Request("http://localhost/api/auth/logout", {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -294,7 +294,7 @@ describe("Auth Endpoints", () => {
 
       // Verify token is invalidated
       const meResponse = await app.handle(
-        new Request("http://localhost/api/v1/auth/me", {
+        new Request("http://localhost/api/auth/me", {
           headers: { Authorization: `Bearer ${token}` },
         })
       );

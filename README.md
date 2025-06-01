@@ -96,11 +96,6 @@ Authorization: Bearer <your-token>
 
 ### Endpoints
 
-#### Health Check
-
-- `GET /` - API info
-- `GET /api/v1/health` - Health check endpoint
-
 #### Authentication (`/auth`)
 
 - `POST /auth/register` - Register a new user

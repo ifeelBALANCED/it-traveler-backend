@@ -9,7 +9,7 @@ async function createUserAndGetToken(
   password = "password123"
 ) {
   const response = await app.handle(
-    new Request("http://localhost/api/v1/auth/register", {
+    new Request("http://localhost/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -35,7 +35,7 @@ describe("Marker Endpoints", () => {
       await db.marker.deleteMany();
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/markers")
+        new Request("http://localhost/api/markers")
       );
 
       expect(response.status).toBe(200);
@@ -49,7 +49,7 @@ describe("Marker Endpoints", () => {
 
       // Create markers
       await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -69,7 +69,7 @@ describe("Marker Endpoints", () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -86,7 +86,7 @@ describe("Marker Endpoints", () => {
       );
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/markers")
+        new Request("http://localhost/api/markers")
       );
 
       expect(response.status).toBe(200);
@@ -104,7 +104,7 @@ describe("Marker Endpoints", () => {
       const { token } = await createUserAndGetToken(email);
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -133,7 +133,7 @@ describe("Marker Endpoints", () => {
 
     test("should fail without authentication", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -151,7 +151,7 @@ describe("Marker Endpoints", () => {
       const { token } = await createUserAndGetToken();
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -172,7 +172,7 @@ describe("Marker Endpoints", () => {
       const { token } = await createUserAndGetToken();
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -195,7 +195,7 @@ describe("Marker Endpoints", () => {
 
       // Create a marker
       const createResponse = await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -213,7 +213,7 @@ describe("Marker Endpoints", () => {
 
       // Get the marker
       const response = await app.handle(
-        new Request(`http://localhost/api/v1/markers/${marker.id}`)
+        new Request(`http://localhost/api/markers/${marker.id}`)
       );
 
       expect(response.status).toBe(200);
@@ -225,7 +225,7 @@ describe("Marker Endpoints", () => {
 
     test("should return 404 for non-existent marker", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/markers/non-existent-id")
+        new Request("http://localhost/api/markers/non-existent-id")
       );
 
       expect(response.status).toBe(404);
@@ -238,7 +238,7 @@ describe("Marker Endpoints", () => {
 
       // Create a marker
       const createResponse = await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -256,7 +256,7 @@ describe("Marker Endpoints", () => {
 
       // Update the marker
       const response = await app.handle(
-        new Request(`http://localhost/api/v1/markers/${marker.id}`, {
+        new Request(`http://localhost/api/markers/${marker.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -286,7 +286,7 @@ describe("Marker Endpoints", () => {
 
       // Create a marker with first user
       const createResponse = await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -304,7 +304,7 @@ describe("Marker Endpoints", () => {
 
       // Try to update with second user
       const response = await app.handle(
-        new Request(`http://localhost/api/v1/markers/${marker.id}`, {
+        new Request(`http://localhost/api/markers/${marker.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -323,7 +323,7 @@ describe("Marker Endpoints", () => {
       const { token } = await createUserAndGetToken();
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/markers/non-existent-id", {
+        new Request("http://localhost/api/markers/non-existent-id", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -345,7 +345,7 @@ describe("Marker Endpoints", () => {
 
       // Create a marker
       const createResponse = await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -363,7 +363,7 @@ describe("Marker Endpoints", () => {
 
       // Delete the marker
       const response = await app.handle(
-        new Request(`http://localhost/api/v1/markers/${marker.id}`, {
+        new Request(`http://localhost/api/markers/${marker.id}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -375,7 +375,7 @@ describe("Marker Endpoints", () => {
 
       // Verify it's deleted
       const getResponse = await app.handle(
-        new Request(`http://localhost/api/v1/markers/${marker.id}`)
+        new Request(`http://localhost/api/markers/${marker.id}`)
       );
 
       expect(getResponse.status).toBe(404);
@@ -390,7 +390,7 @@ describe("Marker Endpoints", () => {
 
       // Create a marker with first user
       const createResponse = await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -408,7 +408,7 @@ describe("Marker Endpoints", () => {
 
       // Try to delete with second user
       const response = await app.handle(
-        new Request(`http://localhost/api/v1/markers/${marker.id}`, {
+        new Request(`http://localhost/api/markers/${marker.id}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token2}`,
@@ -430,7 +430,7 @@ describe("Marker Endpoints", () => {
 
       // Create markers for both users
       await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -445,7 +445,7 @@ describe("Marker Endpoints", () => {
       );
 
       await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -461,7 +461,7 @@ describe("Marker Endpoints", () => {
 
       // Get user 1's markers
       const response = await app.handle(
-        new Request("http://localhost/api/v1/markers/my/markers", {
+        new Request("http://localhost/api/markers/my/markers", {
           headers: {
             Authorization: `Bearer ${token1}`,
           },
@@ -479,7 +479,7 @@ describe("Marker Endpoints", () => {
       const { token } = await createUserAndGetToken();
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/markers/my/markers", {
+        new Request("http://localhost/api/markers/my/markers", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

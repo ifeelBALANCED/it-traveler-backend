@@ -9,7 +9,7 @@ async function createUserAndGetToken(
   password = "password123"
 ) {
   const response = await app.handle(
-    new Request("http://localhost/api/v1/auth/register", {
+    new Request("http://localhost/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -45,7 +45,7 @@ describe("User Endpoints", () => {
       );
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users?page=1&limit=2")
+        new Request("http://localhost/api/users?page=1&limit=2")
       );
 
       expect(response.status).toBe(200);
@@ -68,7 +68,7 @@ describe("User Endpoints", () => {
       await createUserAndGetToken(`user2_${timestamp}@example.com`, "User Two");
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users")
+        new Request("http://localhost/api/users")
       );
 
       expect(response.status).toBe(200);
@@ -81,7 +81,7 @@ describe("User Endpoints", () => {
 
     test("should validate pagination parameters", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users?page=0&limit=150")
+        new Request("http://localhost/api/users?page=0&limit=150")
       );
 
       expect(response.status).toBe(422);
@@ -94,7 +94,7 @@ describe("User Endpoints", () => {
       const { userId } = await createUserAndGetToken(email);
 
       const response = await app.handle(
-        new Request(`http://localhost/api/v1/users/${userId}`)
+        new Request(`http://localhost/api/users/${userId}`)
       );
 
       expect(response.status).toBe(200);
@@ -108,7 +108,7 @@ describe("User Endpoints", () => {
 
     test("should return 404 for non-existent user", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/non-existent-id")
+        new Request("http://localhost/api/users/non-existent-id")
       );
 
       expect(response.status).toBe(404);
@@ -122,7 +122,7 @@ describe("User Endpoints", () => {
       // Create markers
       for (let i = 0; i < 5; i++) {
         await app.handle(
-          new Request("http://localhost/api/v1/markers", {
+          new Request("http://localhost/api/markers", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -139,7 +139,7 @@ describe("User Endpoints", () => {
 
       const response = await app.handle(
         new Request(
-          `http://localhost/api/v1/users/${userId}/markers?page=1&limit=3`
+          `http://localhost/api/users/${userId}/markers?page=1&limit=3`
         )
       );
 
@@ -153,7 +153,7 @@ describe("User Endpoints", () => {
 
     test("should return 404 for non-existent user", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/non-existent-id/markers")
+        new Request("http://localhost/api/users/non-existent-id/markers")
       );
 
       expect(response.status).toBe(404);
@@ -163,7 +163,7 @@ describe("User Endpoints", () => {
       const { userId } = await createUserAndGetToken();
 
       const response = await app.handle(
-        new Request(`http://localhost/api/v1/users/${userId}/markers`)
+        new Request(`http://localhost/api/users/${userId}/markers`)
       );
 
       expect(response.status).toBe(200);
@@ -178,7 +178,7 @@ describe("User Endpoints", () => {
       const { token } = await createUserAndGetToken();
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/profile", {
+        new Request("http://localhost/api/users/profile", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -203,7 +203,7 @@ describe("User Endpoints", () => {
       const { token } = await createUserAndGetToken(email);
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/profile", {
+        new Request("http://localhost/api/users/profile", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -224,7 +224,7 @@ describe("User Endpoints", () => {
 
     test("should fail without authentication", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/profile", {
+        new Request("http://localhost/api/users/profile", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -240,7 +240,7 @@ describe("User Endpoints", () => {
       const { token } = await createUserAndGetToken();
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/profile", {
+        new Request("http://localhost/api/users/profile", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -262,7 +262,7 @@ describe("User Endpoints", () => {
       const { token } = await createUserAndGetToken(email);
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/password", {
+        new Request("http://localhost/api/users/password", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -283,7 +283,7 @@ describe("User Endpoints", () => {
 
       // Verify can login with new password
       const loginResponse = await app.handle(
-        new Request("http://localhost/api/v1/auth/login", {
+        new Request("http://localhost/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -300,7 +300,7 @@ describe("User Endpoints", () => {
       const { token } = await createUserAndGetToken();
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/password", {
+        new Request("http://localhost/api/users/password", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -321,7 +321,7 @@ describe("User Endpoints", () => {
       const { token } = await createUserAndGetToken();
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/password", {
+        new Request("http://localhost/api/users/password", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -342,7 +342,7 @@ describe("User Endpoints", () => {
       const { token } = await createUserAndGetToken();
 
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/password", {
+        new Request("http://localhost/api/users/password", {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -366,7 +366,7 @@ describe("User Endpoints", () => {
 
       // Create a marker
       await app.handle(
-        new Request("http://localhost/api/v1/markers", {
+        new Request("http://localhost/api/markers", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -382,7 +382,7 @@ describe("User Endpoints", () => {
 
       // Delete account
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/account", {
+        new Request("http://localhost/api/users/account", {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -409,7 +409,7 @@ describe("User Endpoints", () => {
 
       // Verify can't use token anymore
       const meResponse = await app.handle(
-        new Request("http://localhost/api/v1/auth/me", {
+        new Request("http://localhost/api/auth/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -421,7 +421,7 @@ describe("User Endpoints", () => {
 
     test("should fail without authentication", async () => {
       const response = await app.handle(
-        new Request("http://localhost/api/v1/users/account", {
+        new Request("http://localhost/api/users/account", {
           method: "DELETE",
         })
       );

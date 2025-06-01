@@ -6,7 +6,7 @@ describe("E2E API Tests", () => {
   test("complete user journey", async () => {
     // 1. Register a new user
     const registerResponse = await app.handle(
-      new Request("http://localhost/api/v1/auth/register", {
+      new Request("http://localhost/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -25,7 +25,7 @@ describe("E2E API Tests", () => {
 
     // 2. Get current user info
     const meResponse = await app.handle(
-      new Request("http://localhost/api/v1/auth/me", {
+      new Request("http://localhost/api/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
     );
@@ -37,7 +37,7 @@ describe("E2E API Tests", () => {
 
     // 3. Create markers
     const marker1Response = await app.handle(
-      new Request("http://localhost/api/v1/markers", {
+      new Request("http://localhost/api/markers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,7 +58,7 @@ describe("E2E API Tests", () => {
     const { data: marker1 } = await marker1Response.json();
 
     const marker2Response = await app.handle(
-      new Request("http://localhost/api/v1/markers", {
+      new Request("http://localhost/api/markers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +79,7 @@ describe("E2E API Tests", () => {
 
     // 4. Get all markers
     const allMarkersResponse = await app.handle(
-      new Request("http://localhost/api/v1/markers")
+      new Request("http://localhost/api/markers")
     );
 
     expect(allMarkersResponse.status).toBe(200);
@@ -91,7 +91,7 @@ describe("E2E API Tests", () => {
 
     // 5. Get user's markers
     const myMarkersResponse = await app.handle(
-      new Request("http://localhost/api/v1/markers/my/markers", {
+      new Request("http://localhost/api/markers/my/markers", {
         headers: { Authorization: `Bearer ${token}` },
       })
     );
@@ -102,7 +102,7 @@ describe("E2E API Tests", () => {
 
     // 6. Update a marker
     const updateResponse = await app.handle(
-      new Request(`http://localhost/api/v1/markers/${marker1.id}`, {
+      new Request(`http://localhost/api/markers/${marker1.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -121,7 +121,7 @@ describe("E2E API Tests", () => {
 
     // 7. Update user profile
     const profileUpdateResponse = await app.handle(
-      new Request("http://localhost/api/v1/users/profile", {
+      new Request("http://localhost/api/users/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -141,7 +141,7 @@ describe("E2E API Tests", () => {
 
     // 8. Get all users
     const usersResponse = await app.handle(
-      new Request("http://localhost/api/v1/users")
+      new Request("http://localhost/api/users")
     );
 
     expect(usersResponse.status).toBe(200);
@@ -150,7 +150,7 @@ describe("E2E API Tests", () => {
 
     // 9. Get user by ID
     const userByIdResponse = await app.handle(
-      new Request(`http://localhost/api/v1/users/${userId}`)
+      new Request(`http://localhost/api/users/${userId}`)
     );
 
     expect(userByIdResponse.status).toBe(200);
@@ -160,7 +160,7 @@ describe("E2E API Tests", () => {
 
     // 10. Get user's markers by user ID
     const userMarkersResponse = await app.handle(
-      new Request(`http://localhost/api/v1/users/${userId}/markers`)
+      new Request(`http://localhost/api/users/${userId}/markers`)
     );
 
     expect(userMarkersResponse.status).toBe(200);
@@ -169,7 +169,7 @@ describe("E2E API Tests", () => {
 
     // 11. Delete a marker
     const deleteMarkerResponse = await app.handle(
-      new Request(`http://localhost/api/v1/markers/${marker2.id}`, {
+      new Request(`http://localhost/api/markers/${marker2.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -179,13 +179,13 @@ describe("E2E API Tests", () => {
 
     // Verify marker is deleted
     const getDeletedMarkerResponse = await app.handle(
-      new Request(`http://localhost/api/v1/markers/${marker2.id}`)
+      new Request(`http://localhost/api/markers/${marker2.id}`)
     );
     expect(getDeletedMarkerResponse.status).toBe(404);
 
     // 12. Change password
     const changePasswordResponse = await app.handle(
-      new Request("http://localhost/api/v1/users/password", {
+      new Request("http://localhost/api/users/password", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -203,7 +203,7 @@ describe("E2E API Tests", () => {
 
     // 13. Logout
     const logoutResponse = await app.handle(
-      new Request("http://localhost/api/v1/auth/logout", {
+      new Request("http://localhost/api/auth/logout", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -213,7 +213,7 @@ describe("E2E API Tests", () => {
 
     // Verify token is invalidated
     const invalidTokenResponse = await app.handle(
-      new Request("http://localhost/api/v1/auth/me", {
+      new Request("http://localhost/api/auth/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
     );
@@ -221,7 +221,7 @@ describe("E2E API Tests", () => {
 
     // 14. Login with new password
     const loginResponse = await app.handle(
-      new Request("http://localhost/api/v1/auth/login", {
+      new Request("http://localhost/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -237,7 +237,7 @@ describe("E2E API Tests", () => {
 
     // 15. Delete account
     const deleteAccountResponse = await app.handle(
-      new Request("http://localhost/api/v1/users/account", {
+      new Request("http://localhost/api/users/account", {
         method: "DELETE",
         headers: { Authorization: `Bearer ${newToken}` },
       })
@@ -253,31 +253,11 @@ describe("E2E API Tests", () => {
     expect(deletedMarkers).toBeArrayOfSize(0);
   });
 
-  test("API health check", async () => {
-    const response = await app.handle(
-      new Request("http://localhost/api/v1/health")
-    );
-
-    expect(response.status).toBe(200);
-    const data = await response.json();
-    expect(data.status).toBe("ok");
-    expect(data.timestamp).toBeTruthy();
-  });
-
-  test("API root endpoint", async () => {
-    const response = await app.handle(new Request("http://localhost/"));
-
-    expect(response.status).toBe(200);
-    const data = await response.json();
-    expect(data.name).toBe("Markers API");
-    expect(data.version).toBe("1.0.0");
-  });
-
   test("concurrent user operations", async () => {
     // Create multiple users concurrently
     const userPromises = Array.from({ length: 3 }, (_, i) =>
       app.handle(
-        new Request("http://localhost/api/v1/auth/register", {
+        new Request("http://localhost/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -302,7 +282,7 @@ describe("E2E API Tests", () => {
     const markerPromises = userData.flatMap((user, userIndex) =>
       Array.from({ length: 2 }, (_, markerIndex) =>
         app.handle(
-          new Request("http://localhost/api/v1/markers", {
+          new Request("http://localhost/api/markers", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -323,7 +303,7 @@ describe("E2E API Tests", () => {
 
     // Verify total markers
     const allMarkersResponse = await app.handle(
-      new Request("http://localhost/api/v1/markers")
+      new Request("http://localhost/api/markers")
     );
     const { data: allMarkers } = await allMarkersResponse.json();
     // There may be more markers from other tests, so just check we have at least 6
@@ -337,7 +317,7 @@ describe("E2E API Tests", () => {
     // Verify each user has their own markers
     const userMarkerChecks = userData.map((user) =>
       app.handle(
-        new Request("http://localhost/api/v1/markers/my/markers", {
+        new Request("http://localhost/api/markers/my/markers", {
           headers: { Authorization: `Bearer ${user.token}` },
         })
       )
@@ -356,7 +336,7 @@ describe("E2E API Tests", () => {
 
     // 1. Invalid email format
     const invalidEmailResponse = await app.handle(
-      new Request("http://localhost/api/v1/auth/register", {
+      new Request("http://localhost/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -371,7 +351,7 @@ describe("E2E API Tests", () => {
 
     // 2. Short password
     const shortPasswordResponse = await app.handle(
-      new Request("http://localhost/api/v1/auth/register", {
+      new Request("http://localhost/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -387,7 +367,7 @@ describe("E2E API Tests", () => {
     // 3. Invalid coordinates
     const { token } = await createTestUser();
     const invalidCoordinatesResponse = await app.handle(
-      new Request("http://localhost/api/v1/markers", {
+      new Request("http://localhost/api/markers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -404,7 +384,7 @@ describe("E2E API Tests", () => {
 
     // 4. Unauthorized access
     const unauthorizedResponse = await app.handle(
-      new Request("http://localhost/api/v1/markers", {
+      new Request("http://localhost/api/markers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -418,7 +398,7 @@ describe("E2E API Tests", () => {
 
     // 5. Non-existent resource
     const notFoundResponse = await app.handle(
-      new Request("http://localhost/api/v1/markers/non-existent-id")
+      new Request("http://localhost/api/markers/non-existent-id")
     );
     expect(notFoundResponse.status).toBe(404);
   });
@@ -427,7 +407,7 @@ describe("E2E API Tests", () => {
 // Helper function to create a test user
 async function createTestUser() {
   const response = await app.handle(
-    new Request("http://localhost/api/v1/auth/register", {
+    new Request("http://localhost/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
