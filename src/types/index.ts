@@ -7,7 +7,7 @@ export const BaseResponse = t.Object({
 
 export const ErrorResponse = t.Object({
   success: t.Boolean(),
-  message: t.String(),
+  errors: t.Record(t.String(), t.String()),
 })
 
 // User types
@@ -153,4 +153,17 @@ export interface PaginatedResponse<T> {
   page: number
   limit: number
   totalPages: number
+}
+
+export class ValidationError extends Error {
+  constructor(field: string, message: string) {
+    super(
+      JSON.stringify({
+        success: false,
+        errors: {
+          [field]: message,
+        },
+      }),
+    )
+  }
 }

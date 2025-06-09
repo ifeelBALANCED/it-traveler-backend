@@ -7,6 +7,7 @@ import {
   MessageResponse,
   UserDataResponse,
   ErrorResponse,
+  ValidationError,
 } from '../types'
 
 export const auth = new Elysia({ prefix: '/auth' })
@@ -27,7 +28,18 @@ export const auth = new Elysia({ prefix: '/auth' })
         }
       } catch (error) {
         set.status = 400
-        throw error
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        const field = message.toLowerCase().includes('email')
+          ? 'email'
+          : message.toLowerCase().includes('password')
+            ? 'password'
+            : message.toLowerCase().includes('confirm')
+              ? 'confirmPassword'
+              : message.toLowerCase().includes('name')
+                ? 'name'
+                : 'general'
+
+        throw new ValidationError(field, message)
       }
     },
     {
@@ -53,8 +65,15 @@ export const auth = new Elysia({ prefix: '/auth' })
           data: result,
         }
       } catch (error) {
-        set.status = 401
-        throw error
+        set.status = 400
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        const field = message.toLowerCase().includes('email')
+          ? 'email'
+          : message.toLowerCase().includes('password')
+            ? 'password'
+            : 'general'
+
+        throw new ValidationError(field, message)
       }
     },
     {
@@ -64,7 +83,7 @@ export const auth = new Elysia({ prefix: '/auth' })
       }),
       response: {
         200: LoginResponse,
-        401: ErrorResponse,
+        400: ErrorResponse,
       },
     },
   )
@@ -94,7 +113,7 @@ export const auth = new Elysia({ prefix: '/auth' })
           const user = await AuthService.getUser(userId)
 
           if (!user) {
-            throw new Error('User not found')
+            throw new ValidationError('general', 'User not found')
           }
 
           return {
